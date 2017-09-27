@@ -1,0 +1,11 @@
+Package: IrisViewer
+Type: Package
+Title: A shiny interface for the IrisSpatialFeatures package
+Version: 0.0.0.9000
+Date: 2017-09-27
+Authors@R: person("Daniel", "Gusenleitner", email = "daniel.gusenleitner@dfci.harvard.edu", role = c("aut", "cre"))
+Description: Simple Shiny interface that allows to view results produced by IrisSpatialFeatures and explore the underlying data.
+Depends: R (>= 3.4.0), d3Toolbox, IrisSpatialFeatures, shiny, tiff
+License: MIT
+Encoding: UTF-8
+LazyData: true
