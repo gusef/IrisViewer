@@ -20,8 +20,7 @@ read_component_tiff <- function(raw_dir,
     }
     dir.create(out_dir)
 
-
-    dummy <- lapply(fnames,function(fname, raw_dir, out_dir){
+    channels <- lapply(fnames,function(fname, raw_dir, out_dir){
         print(paste('Working on ...', fname))
         
         #add the directory
@@ -43,6 +42,8 @@ read_component_tiff <- function(raw_dir,
 
         #drop the overview image
         channels <- channels[channels != 'Overview']
+        
+        channels <- sub('^ +','',channels)
 
         #if not specified otherwise also drop the autofluorescence channel
         if (!Autofluorescence){
@@ -75,7 +76,14 @@ read_component_tiff <- function(raw_dir,
         outfile <- outfile[length(outfile)]
         outfile <- file.path(out_dir,outfile)
         writeTIFF(tiff,outfile,compression="JPEG")
+        return(channels)
     },
     raw_dir,
     out_dir)
+    
+    if (!all(sapply(channels,function(x,y)all(x==y),channels[[1]]))){
+        stop('Markers did not all match up.')
+    }
+    
+    write.csv(channels[[1]],file=file.path(out_dir,'channels.csv'),row.names = F)
 }

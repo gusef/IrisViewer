@@ -119,14 +119,16 @@ server <- function(input, output, session) {
     
     
 ##############################################################################
-#### When changing the marker panels let's reset the plots
+#### When changing the marker panels let's reset the plots and images
     
 observeEvent(input$first_marker,{
     values$current_sample <- NULL
+    values$current_tiffstack <- NULL
 })
     
 observeEvent(input$second_marker,{
     values$current_sample <- NULL
+    values$current_tiffstack <- NULL
 })
     
     
@@ -286,7 +288,7 @@ observeEvent(input$second_marker,{
     })
 
     #simple rendering of an multiplex IF image
-    output$IF_image <- renderImage({
+    output$IF_image <- renderShinyMagnifier({
         #extract_tiffstack(samp='1049',coord='52474,10131')
         if (!is.null(values$current_tiffstack)){
     
@@ -299,30 +301,31 @@ observeEvent(input$second_marker,{
             #and tiffs         
             tif <- values$current_tiffstack[selection]
             
+
             #sum up the colors into one single image
             img <- array(0,dim=c(dim(tif[[1]]),3))
             for (i in 1:length(tif)){
                 rgb <- col2rgb(cols[i])
                 for (j in 1:3){
-                    img[,,j] <- img[,,j] + (tif[[i]]) * rgb[j]/255
+                    #alpha blending
+                    img[,,j] <- img[,,j] * (1.0 - tif[[i]]) + (tif[[i]] * rgb[j]/255)
                 }
             }
+            
             #and save it as a jpeg
-            temp_file <- tempfile(fileext = '.jpg')
-            writeJPEG(img,temp_file,color.space='RGBA')
-            values$img_file <- temp_file
+            temp_dir <- tempdir()
+            temp_file <- paste0('temp',sample(1000000,1),'.jpg')
 
-            return(
-                list(src = values$img_file,
-                     alt = "",
-                     vspace="50,0",
-                     width = 0.9 * input$dimension[1] / 2)
-            )
-        }else{
-            return(list(src = '',
-                        alt = '',
-                        vspace="50,0",
-                        width = 0.9 * input$dimension[1] / 2))
+            values$img_file <- temp_file
+            unlink(file.path(temp_dir,temp_file))
+            writeJPEG(img, file.path(temp_dir,temp_file), color.space='RGBA')
+            addResourcePath('img', temp_dir)
+            
+            ShinyMagnifier(file.path('img',temp_file), 
+                           file.path('img',temp_file), 
+                           zoom = 4,
+                           width = 0.8 * input$dimension[1] / 2,
+                           vspace = '50 0')
         }
     })
 

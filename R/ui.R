@@ -64,6 +64,9 @@ ui <- navbarPage(
             plotOutput("rayplot_panel", height = "100%")
         ),
         column(6,
-               imageOutput("IF_image")))
+               ShinyMagnifierOutput("IF_image", 
+                                    width = "100%", 
+                                    height = "100%"))
+        )
     )
 )
