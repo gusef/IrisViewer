@@ -2,7 +2,7 @@
 #'
 #' Run the Shiny App IrisViewer
 #' @export
-server <- function(input, output, session) {
+server_using_hdf <- function(input, output, session) {
     options(shiny.maxRequestSize=1000*1024^2)
 
     #reactive values
@@ -34,7 +34,8 @@ server <- function(input, output, session) {
         colpalette <- c('blue','red','green','yellow','orange','purple','grey')
         
         #figure out the channels
-        channels <- read.csv(file.path(images,'channels.csv'),as.is = T)[,1]
+        img_dir <- h5ls(images)
+        channels <- img_dir[img_dir$group == img_dir$group[2],]$name
         names(channels) <- sub('\\.\\.Opal.+','',channels)
         dapi_pos <- grep('DAPI',channels)
         channels <- c(channels[dapi_pos],channels[-dapi_pos])
@@ -230,25 +231,24 @@ observeEvent(input$second_marker,{
     #extracting all tiffs related to the current sample / coordinate
     extract_tiffstack <- function(samp,coord){
         #access the right images
-        img_dir <- dir(images)
-        samp_names <- sapply(strsplit(img_dir,'_\\['),function(x)x[1])
-        coord_names <- sub('\\]_.+$','',sub('^.+_\\[','',img_dir)) 
-        img <- img_dir[(samp_names == samp) & (coord_names == coord)]
+        img_dir <- h5ls(images)
+        group_name <- paste0("/",samp,"_[",coord,"]")
+        img_dir <- img_dir[img_dir$group == group_name,]
+        image_names <- paste(group_name,img_dir$name,sep='/')
+        
+        #extract the layers
+        maps <- lapply(image_names,
+                       function(x,images){
+                           h5read(images,
+                                  x)},
+                       images)
+        
+        names(maps) <- img_dir$name
+        values$current_tiffstack <- maps[match(values$channels,names(maps))]
 
-        #load the tiffstack
-        img <- file.path(images,img)
-        if (file.exists(img)){
-            maps <- readTIFF(img,all = T)
-            #add the channels
-            names(maps) <- read.csv(file.path(images,'channels.csv'),as.is = T)[,1]
-            values$current_tiffstack <- maps[match(values$channels,names(maps))]
-        } else {
-            showModal(modalDialog(
-                title = "An error occured",
-                paste(img, 'does not exist.')
-            ))
-        }
     }
+    
+    
     
 ##############################################################################
 #### Rayplot and image output
@@ -328,6 +328,7 @@ observeEvent(input$second_marker,{
                            vspace = '50 0')
         }
     })
+
 }
 
 
