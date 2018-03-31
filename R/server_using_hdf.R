@@ -172,7 +172,7 @@ observeEvent(input$second_marker,{
                       title=vals$label,
                       title_size=20,
                       legend=legend,
-                      subtitle=paste('Paired t-test:', format(vals$pval,digits=4)),
+                      subtitle=paste('Paired signed rank test:', format(vals$pval,digits=4)),
                       callback=callback)
         }
     }

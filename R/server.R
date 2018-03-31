@@ -20,13 +20,14 @@ server <- function(input, output, session) {
     
         #set the marker selects
         singles <- iris_set@markers
+        allmarkers <- singles
         doubles <- sub('[+-]$','',singles)
         singles <- singles[!doubles %in% doubles[duplicated(doubles)]]
         doubles <- table(doubles)
         doubles <- names(doubles)[doubles == 2]
 
         updateSelectInput(session, 'first_marker',
-                          choices = singles)
+                          choices = allmarkers)
         updateSelectInput(session, 'second_marker',
                           choices = doubles)
 
@@ -171,7 +172,7 @@ observeEvent(input$second_marker,{
                       title=vals$label,
                       title_size=20,
                       legend=legend,
-                      subtitle=paste('Paired t-test:', format(vals$pval,digits=4)),
+                      subtitle=paste('Paired signed rank test:', format(vals$pval,digits=4)),
                       callback=callback)
         }
     }
@@ -231,10 +232,9 @@ observeEvent(input$second_marker,{
     extract_tiffstack <- function(samp,coord){
         #access the right images
         img_dir <- dir(images)
-        samp_names <- sapply(strsplit(img_dir,'_\\['),function(x)x[1])
-        coord_names <- sub('\\]_.+$','',sub('^.+_\\[','',img_dir)) 
-        img <- img_dir[(samp_names == samp) & (coord_names == coord)]
-
+        samp_names <- gsub('^(.*)_[^_]+_component_data.tif$', '\\1', img_dir)
+        coord_names <- gsub('^.*_([^_]+)_component_data.tif$', '\\1', img_dir)
+        img <- img_dir[(startsWith(samp_names,samp)) & (substring(gsub(samp,'',img_dir),1,1)=='_') & (coord_names == coord)]
         #load the tiffstack
         img <- file.path(images,img)
         if (file.exists(img)){

@@ -9,7 +9,8 @@ IrisViewer <- function (iris_set, images) {
     require(shiny)
     require(shinyjs)
     require(tiff)
-    
+    .GlobalEnv$iris_set = iris_set
+    .GlobalEnv$images = images
     app <- list(
         ui = ui,
         server = server
