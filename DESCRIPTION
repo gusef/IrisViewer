@@ -6,7 +6,7 @@ Date: 2017-09-27
 Authors@R: person("Daniel", "Gusenleitner", email = "daniel.gusenleitner@dfci.harvard.edu", role = c("aut", "cre"))
 Description: Simple Shiny interface that allows to view results produced by IrisSpatialFeatures and explore the underlying data.
 Depends: R (>= 3.4.0), colourpicker, d3Toolbox, gdalUtils, 
-         IrisSpatialFeatures, jpeg, shiny, shinyjs, ShinyMagnifier, tiff
+         IrisSpatialFeatures (>= 1.2.0), jpeg, shiny, shinyjs, ShinyMagnifier, tiff
 License: MIT
 Encoding: UTF-8
 LazyData: true
