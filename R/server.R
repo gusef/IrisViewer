@@ -17,7 +17,6 @@ server <- function(input, output, session) {
 
     #Initialization
     observe({
-    
         #set the marker selects
         singles <- iris_set@markers
         allmarkers <- singles
@@ -146,8 +145,16 @@ observeEvent(input$second_marker,{
                                           to = input$second_marker,
                                           transposed = transpose)
 
+            
+            
             means <- t(vals$means)
-            colnames(means) <- c('x','y')
+            if(ncol(means) == 2){
+                colnames(means) <- c('x','y')
+                
+            } else {
+                colnames(means) <- 'x'
+            }
+
             se <- t(vals$ses)
             colnames(se) <- NULL
 
@@ -166,7 +173,7 @@ observeEvent(input$second_marker,{
                       margins=margins,
                       beside=T,
                       las=2,
-                      col=c('grey','black'),
+                      col=c('grey','black')[seq(ncol(means))],
                       xlab='',
                       ylab=vals$ylab,
                       title=vals$label,
@@ -230,13 +237,22 @@ observeEvent(input$second_marker,{
 
     #extracting all tiffs related to the current sample / coordinate
     extract_tiffstack <- function(samp,coord){
+        
         #access the right images
         img_dir <- dir(images)
-        samp_names <- gsub('^(.*)_[^_]+_component_data.tif$', '\\1', img_dir)
-        coord_names <- gsub('^.*_([^_]+)_component_data.tif$', '\\1', img_dir)
-        img <- img_dir[(startsWith(samp_names,samp)) & (substring(gsub(samp,'',img_dir),1,1)=='_') & (coord_names == coord)]
+        
+      
+        # samp_names <- gsub('^(.*)_[^_]+_component_data.tif$', '\\1', img_dir)
+        # coord_names <- gsub('^.*_([^_]+)_component_data.tif$', '\\1', img_dir)
+        # img <- img_dir[(startsWith(samp_names,samp)) & (substring(gsub(samp,'',img_dir),1,1)=='_') & (coord_names == coord)]
+        
+        samp_names <- sapply(strsplit(img_dir,'_\\['),function(x)x[1])
+        coord_names <- sub('\\]_.+$','',sub('^.+_\\[','',img_dir)) 
+        img <- img_dir[(samp_names == samp) & (coord_names == coord)]
+        
         #load the tiffstack
         img <- file.path(images,img)
+        
         if (file.exists(img)){
             maps <- readTIFF(img,all = T)
             #add the channels
